@@ -1,3 +1,4 @@
+import React from "react";
 import {
   View,
   Text,
@@ -6,7 +7,6 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
-import React from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import {
   widthPercentageToDP as wp,
@@ -17,46 +17,79 @@ import { toggleFavorite } from "../redux/favoritesSlice";
 
 export default function CustomNewsScreen() {
   const navigation = useNavigation();
+  const route = useRoute();
   const dispatch = useDispatch();
 
-  const route = useRoute();
-  const { article } = route.params || {}; // Pass the article object as a parameter
+  const article = route?.params?.article;
+
   const favoriteArticles = useSelector(
     (state) => state.favorites.favoriteArticles
   );
-  const isFavourite = favoriteArticles.includes(article.idArticle); // Adjust this according to your article structure
+
+  const isFavourite = article
+    ? favoriteArticles.some((item) => item.idArticle === article.idArticle)
+    : false;
+
+  const handleToggleFavorite = () => {
+    if (article) {
+      dispatch(toggleFavorite(article));
+    }
+  };
 
   if (!article) {
     return (
-      <View style={styles.container}>
+      <View style={styles.centered}>
         <Text style={styles.title}>No Article Details Available</Text>
       </View>
     );
   }
 
-  const handleToggleFavorite = () => {
-    dispatch(toggleFavorite(article)); // Adjust the action to handle articles
-  };
-
   return (
     <ScrollView
       style={styles.container}
+      contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.scrollContent} testID="scrollContent"
+      testID="scrollContent"
     >
       {/* Article Image */}
-      <View style={styles.imageContainer} testID="imageContainer">
-      
-      </View>
-      <View
-        style={styles.topButtonsContainer} testID="topButtonsContainer"
-      >
-       
+      <View style={styles.imageWrapper} testID="imageContainer">
+        <Image
+          source={{
+            uri:
+              article.image ||
+              "https://via.placeholder.com/600x400.png?text=No+Image",
+          }}
+          style={styles.articleImage}
+        />
+
+        {/* Top Buttons (Overlay) */}
+        <View style={styles.topButtonsContainer} testID="topButtonsContainer">
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.iconButton}
+          >
+            <Text style={styles.iconText}>←</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleToggleFavorite}
+            style={styles.iconButton}
+          >
+            <Text style={styles.iconText}>{isFavourite ? "♥" : "♡"}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Article Details */}
+      {/* Article Content */}
       <View style={styles.contentContainer} testID="contentContainer">
-      
+        <Text style={styles.articleTitle}>{article.title}</Text>
+
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Content</Text>
+          <Text style={styles.contentText}>
+            {article.description || "No description available."}
+          </Text>
+        </View>
       </View>
     </ScrollView>
   );
@@ -64,65 +97,70 @@ export default function CustomNewsScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "white",
     flex: 1,
+    backgroundColor: "#fff",
   },
   scrollContent: {
-    paddingBottom: 30,
+    paddingBottom: hp(4),
   },
-  imageContainer: {
-    flexDirection: "row",
+  centered: {
+    flex: 1,
     justifyContent: "center",
+    alignItems: "center",
+  },
+  imageWrapper: {
+    position: "relative",
+    alignItems: "center",
   },
   articleImage: {
-    width: wp(98),
+    width: wp(100),
     height: hp(50),
-    borderRadius: 35,
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
-    marginTop: 4,
+    borderBottomLeftRadius: 35,
+    borderBottomRightRadius: 35,
+  },
+  topButtonsContainer: {
+    position: "absolute",
+    top: hp(4),
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: wp(5),
+  },
+  iconButton: {
+    backgroundColor: "white",
+    padding: 10,
+    borderRadius: 50,
+    elevation: 3,
+  },
+  iconText: {
+    fontSize: hp(2.2),
   },
   contentContainer: {
-    paddingHorizontal: wp(4),
-    paddingTop: hp(4),
+    paddingHorizontal: wp(5),
+    paddingTop: hp(3),
   },
   articleTitle: {
     fontSize: hp(3),
     fontWeight: "bold",
-    color: "#4B5563",
+    color: "#374151",
     marginBottom: hp(2),
   },
   sectionContainer: {
     marginBottom: hp(2),
   },
   sectionTitle: {
-    fontSize: hp(2.5),
+    fontSize: hp(2.4),
     fontWeight: "bold",
-    color: "#4B5563",
+    color: "#374151",
     marginBottom: hp(1),
   },
-  topButtonsContainer: {
-    width: "100%",
-    position: "absolute",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingTop: hp(4),
-  },
-  backButton: {
-    padding: 8,
-    borderRadius: 50,
-    marginLeft: wp(5),
-    backgroundColor: "white",
-  },
-  favoriteButton: {
-    padding: 8,
-    borderRadius: 50,
-    marginRight: wp(5),
-    backgroundColor: "white",
-  },
   contentText: {
-    fontSize: hp(1.6),
+    fontSize: hp(1.8),
     color: "#4B5563",
+    lineHeight: hp(2.6),
+  },
+  title: {
+    fontSize: hp(2.5),
+    fontWeight: "bold",
   },
 });

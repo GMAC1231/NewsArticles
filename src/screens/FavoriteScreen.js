@@ -17,76 +17,118 @@ import {
 export default function FavoriteScreen() {
   const navigation = useNavigation();
 
-  // Assuming you have a similar structure for articles in your Redux store
-  const favoriteArticles = useSelector((state) => state.favorites);
-  const favoriteArticlesList = favoriteArticles?.favoriteArticles || [];
+  const favoriteArticlesList = useSelector(
+    (state) => state.favorites?.favoriteArticles ?? []
+  );
 
-  if (favoriteArticlesList.length === 0) {
+  const GoBackButton = () => (
+    <TouchableOpacity style={styles.backButton} onPress={navigation.goBack}>
+      <Text style={styles.backButtonText}>Go back</Text>
+    </TouchableOpacity>
+  );
+
+  const renderItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.cardContainer}
+      onPress={() => navigation.navigate("ArticleDetail", { article: item })}
+      activeOpacity={0.8}
+    >
+      <Image
+        source={{
+          uri:
+            item.thumbnail ||
+            "https://via.placeholder.com/150/cccccc/000000?text=No+Image",
+        }}
+        style={styles.articleImage}
+        resizeMode="cover"
+      />
+      <Text style={styles.articleTitle} numberOfLines={2}>
+        {item.title}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  if (!favoriteArticlesList.length) {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyText}>No favorite articles yet!</Text>
-        {/* add back button */}
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={{
-            backgroundColor: "#2563EB",
-            padding: 10,
-            borderRadius: 5,
-            marginTop: 10,
-            width: 100,
-            alignItems: "center ",
-          }}
-        >
-          <Text style={{ color: "#fff" }}>Go back</Text>
-        </TouchableOpacity>
+        <GoBackButton />
       </View>
     );
   }
 
   return (
-    <>
+    <View style={{ flex: 1 }}>
       {/* Heading */}
-      <View testID="FavoriteArticles">
-        <Text
-          style={{ fontSize: hp(3.8), marginTop: hp(4), marginLeft: 20 }}
-          className="font-semibold text-neutral-600"
-        >
-          My Favorite Articles
-        </Text>
+      <View testID="FavoriteArticles" style={styles.headerContainer}>
+        <Text style={styles.heading}>My Favorite Articles</Text>
       </View>
-    
-     
-     
-    </>
+
+      <GoBackButton />
+
+      <FlatList
+        data={favoriteArticlesList}
+        keyExtractor={(item, index) =>
+          item.idArticle?.toString() || index.toString()
+        }
+        renderItem={renderItem}
+        contentContainerStyle={styles.listContentContainer}
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  headerContainer: {
+    marginTop: hp(4),
+    marginLeft: wp(5),
+  },
+  heading: {
+    fontSize: hp(3.8),
+    fontWeight: "600",
+    color: "#4B5563",
+  },
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    paddingHorizontal: wp(10),
   },
   emptyText: {
     fontSize: hp(2.5),
-    color: "#6B7280", // text-neutral-600
+    color: "#6B7280",
+    textAlign: "center",
+  },
+  backButton: {
+    backgroundColor: "#2563EB",
+    paddingVertical: hp(1.2),
+    paddingHorizontal: wp(5),
+    borderRadius: 8,
+    marginTop: hp(2),
+    alignSelf: "flex-start",
+    marginLeft: wp(5),
+  },
+  backButtonText: {
+    color: "#fff",
+    fontWeight: "600",
   },
   listContentContainer: {
     paddingHorizontal: wp(4),
     paddingVertical: hp(2),
   },
   cardContainer: {
-    backgroundColor: "white",
+    backgroundColor: "#fff",
     marginBottom: hp(2),
     padding: wp(4),
-    borderRadius: 10,
-    elevation: 3, // For Android shadow
-    shadowColor: "#000", // For iOS shadow
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    elevation: 3,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    flexDirection: "row",
-    alignItems: "center",
   },
   articleImage: {
     width: wp(20),
@@ -95,8 +137,9 @@ const styles = StyleSheet.create({
     marginRight: wp(4),
   },
   articleTitle: {
+    flex: 1,
     fontSize: hp(2),
     fontWeight: "bold",
-    color: "#4B5563", // text-neutral-700
+    color: "#374151",
   },
 });

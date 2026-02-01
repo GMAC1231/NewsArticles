@@ -11,10 +11,27 @@ export default function NewsFormScreen({ route, navigation }) {
     articleToEdit ? articleToEdit.description : ""
   );
 
-  const saveArticle = async () => {
-    
-  };
+ const saveArticle = async () => {
+    const newArticle = { title, image, description };
+    try {
+      const existingArticles = await AsyncStorage.getItem("customArticles");
+      const articles = existingArticles ? JSON.parse(existingArticles) : [];
 
+      // If editing an article, update it; otherwise, add a new one
+      if (articleToEdit !== undefined) {
+        articles[articleIndex] = newArticle;
+        await AsyncStorage.setItem("customArticles", JSON.stringify(articles));
+        if (onArticleEdited) onArticleEdited(); // Notify the edit
+      } else {
+        articles.push(newArticle); // Add new article
+        await AsyncStorage.setItem("customArticles", JSON.stringify(articles));
+      }
+
+      navigation.goBack(); // Return to the previous screen
+    } catch (error) {
+      console.error("Error saving the article:", error);
+    }
+  };
   return (
     <View style={styles.container}>
       <TextInput
